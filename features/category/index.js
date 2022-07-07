@@ -1,1 +1,3 @@
-export const categoriesRoute = require('./categoryRoute');
+const categoriesRoute = require('./categoryRoute');
+
+module.exports = { categoriesRoute };

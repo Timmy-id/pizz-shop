@@ -1,1 +1,3 @@
-export const authRoute = require('./authRoute');
+const authRoute = require('./authRoute');
+
+module.exports = { authRoute };

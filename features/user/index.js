@@ -1,1 +1,3 @@
-export const usersRoute = require('./userRoute');
+const usersRoute = require('./userRoute');
+
+module.exports = { usersRoute };

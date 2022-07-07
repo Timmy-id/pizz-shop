@@ -1,1 +1,3 @@
-export const ordersRoute = require('./orderRoute');
+const ordersRoute = require('./orderRoute');
+
+module.exports = { ordersRoute };
