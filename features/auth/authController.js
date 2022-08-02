@@ -62,15 +62,13 @@ const loginUser = async (req, res) => {
         success: false,
         message: 'Invalid email or password',
       });
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, user.email, user.isAdmin);
     user.token = token;
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: { email: user.email, token: user.token },
-      });
+    res.status(200).json({
+      success: true,
+      data: { email: user.email, token: user.token },
+    });
   } catch (err) {
     res.status(500).send({ success: false, message: err.message });
   }
