@@ -50,7 +50,7 @@ const getCategory = async (req, res) => {
       data: category,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -84,7 +84,7 @@ const updateCategory = async (req, res) => {
 
     return res.status(200).json({ success: true, data: category });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -112,7 +112,7 @@ const deleteCategory = async (req, res) => {
       });
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

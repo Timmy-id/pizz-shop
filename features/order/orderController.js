@@ -17,6 +17,19 @@ const createOrder = async (req, res) => {
 
   const itemIds = await orderItemIds;
 
+  const totalPrices = await Promise.all(
+    itemIds.map(async (orderItemId) => {
+      const orderItem = await OrderItem.findById(
+        orderItemId
+      ).populate('product', 'price');
+      const totalPrice = orderItem.product.price * orderItem.quantity;
+
+      return totalPrice;
+    })
+  );
+
+  const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
+
   let order = new Order({
     orderItems: itemIds,
     shippingAddress1: req.body.shippingAddress1,
@@ -26,7 +39,7 @@ const createOrder = async (req, res) => {
     country: req.body.country,
     phone: req.body.phone,
     status: req.body.status,
-    totalPrice: req.body.totalPrice,
+    totalPrice: totalPrice,
     user: req.body.user,
   });
   order = await order.save();
@@ -80,4 +93,72 @@ const getOrder = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, getAllOrders, getOrder };
+const updateOrder = async (req, res) => {
+  const orderId = req.params.orderId;
+  const { status } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'invalid id' });
+  }
+
+  try {
+    const updateInput = {
+      status,
+    };
+
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      updateInput,
+      { new: true }
+    );
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'order not found' });
+    }
+
+    return res.status(200).json({ success: true, data: order });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const deleteOrder = async (req, res) => {
+  const orderId = req.params.orderId;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'invalid id' });
+  }
+
+  Order.findByIdAndRemove(orderId)
+    .then(async (order) => {
+      if (order) {
+        await order.orderItems.map(async (orderItem) => {
+          await OrderItem.findByIdAndRemove(orderItem);
+        });
+        return res.status(200).json({
+          success: true,
+          message: 'Order deleted successfully',
+        });
+      } else {
+        return res
+          .status(404)
+          .json({ success: false, message: 'Order not found' });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ success: false, message: err.message });
+    });
+};
+
+module.exports = {
+  createOrder,
+  getAllOrders,
+  getOrder,
+  updateOrder,
+  deleteOrder,
+};
