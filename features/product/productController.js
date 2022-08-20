@@ -3,21 +3,7 @@ const Product = require('./productModel');
 const Category = require('../category/categoryModel');
 
 const createProduct = async (req, res) => {
-  const {
-    name,
-    shortDescription,
-    longDescription,
-    image,
-    brand,
-    price,
-    category,
-    stock,
-    rating,
-    numReviews,
-    isFeatured,
-  } = req.body;
-
-  const productCategory = await Category.findById(category);
+  const productCategory = await Category.findById(req.body.category);
 
   if (!productCategory) {
     return res
@@ -25,26 +11,32 @@ const createProduct = async (req, res) => {
       .json({ success: false, message: 'Invalid category' });
   }
 
-  if (!name || !shortDescription || !category || !stock) {
-    return res.status(400).json({
-      success: false,
-      message:
-        'name or short description or category or stock is required',
-    });
+  const file = req.file;
+
+  if (!file) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'Image field is required' });
   }
 
+  const fileName = req.file.filename;
+
+  const basePath = `${req.protocol}://${req.get(
+    'host'
+  )}/public/uploads/`;
+
   const product = new Product({
-    name,
-    shortDescription,
-    longDescription,
-    image,
-    brand,
-    price,
-    category,
-    stock,
-    rating,
-    numReviews,
-    isFeatured,
+    name: req.body.name,
+    shortDescription: req.body.shortDescription,
+    longDescription: req.body.longDescription,
+    image: `${basePath}${fileName}`,
+    brand: req.body.brand,
+    price: req.body.price,
+    category: req.body.category,
+    stock: req.body.stock,
+    rating: req.body.rating,
+    numReviews: req.body.numReviews,
+    isFeatured: req.body.isFeatured,
   });
 
   try {
@@ -161,6 +153,46 @@ const updateProduct = async (req, res) => {
   }
 };
 
+const updateProductGallery = async (req, res) => {
+  const productId = req.params.productId;
+  const gallery = req.body;
+  const files = req.files;
+  const basePath = `${req.protocol}://${req.get(
+    'host'
+  )}/public/uploads/`;
+  let galleryPaths = [];
+
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'invalid id' });
+  }
+
+  if (files) {
+    files.map((file) => {
+      galleryPaths.push(`${basePath}${file.fileName}`);
+    });
+  }
+
+  try {
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      { gallery: galleryPaths },
+      { new: true }
+    );
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'product not found' });
+    }
+
+    return res.status(200).json({ success: true, data: product });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const deleteProduct = async (req, res) => {
   const productId = req.params.productId;
 
@@ -226,6 +258,7 @@ module.exports = {
   getAllProducts,
   getProduct,
   updateProduct,
+  updateProductGallery,
   deleteProduct,
   getProductsCount,
   getFeaturedProducts,

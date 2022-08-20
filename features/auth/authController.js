@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const User = require('../user/userModel');
 const bcrypt = require('bcryptjs');
 const generateToken = require('../../utils/generateToken');
