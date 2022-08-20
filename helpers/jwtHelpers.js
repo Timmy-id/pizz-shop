@@ -11,6 +11,7 @@ function authorize() {
     path: [
       `${api}/auth/login`,
       `${api}/auth/register`,
+      { url: /\/public\/uploads(.*)/, methods: ['GET', 'OPTIONS'] },
       { url: /\/api\/v1\/products(.*)/, methods: ['GET', 'OPTIONS'] },
       {
         url: /\/api\/v1\/categories(.*)/,

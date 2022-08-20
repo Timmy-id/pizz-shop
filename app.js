@@ -23,6 +23,10 @@ app.options('*', cors());
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(authorize());
+app.use(
+  '/public/uploads',
+  express.static(__dirname + '/public/uploads')
+);
 app.use(errorHandler);
 
 // routes
